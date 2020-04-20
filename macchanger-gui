@@ -1,0 +1,111 @@
+#!/usr/bin/python3.8
+
+# list of modules which is necessary to build this project
+import subprocess
+import re
+import os
+import random
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox as m_box
+
+class mac_changer:
+
+    def __init__(self):
+        root=tk.Tk()
+        root.title("MAC CHANGER-GUI")
+        root.geometry("400x230")
+
+        #list of variables used in the entire program
+        self.interface=tk.StringVar()  # for interface input from the combo list
+        self.mac_address=tk.StringVar() # for storing the mac address in entry box
+
+        #menubar
+        self.tabs=ttk.Notebook(root)
+        self.home_tab=ttk.Frame(self.tabs)
+        self.about_tab=ttk.Frame(self.tabs)
+        self.tabs.add(self.home_tab,text="Home")
+        self.tabs.add(self.about_tab,text="About")
+        self.tabs.pack(expand=True,fill='both')
+
+        #interface label
+        self.interface_label=ttk.Label(self.home_tab,text="Interface Name : ")
+        self.interface_label.place(x=10,y=40)
+
+        #interface combo list
+        self.interface_list_combo=ttk.Combobox(self.home_tab,textvariable=self.interface,state='readonly')
+        self.interface_list=str(subprocess.check_output("ls /sys/class/net",shell=True))
+        self.interface_list_combo['values']=tuple((self.interface_list[2:-3]).split("\\n"))
+        self.interface_list_combo.current(0)
+        self.interface_list_combo.place(x=140,y=40)
+
+        #mac label
+        self.mac_label=ttk.Label(self.home_tab,text="MAC Address : ")
+        self.mac_label.place(x=10,y=90)
+
+        #mac entry box
+        self.mac_entry=ttk.Entry(self.home_tab,textvariable=self.mac_address)
+        self.mac_entry.place(x=120,y=90)
+
+        #generate mac button
+        self.generate_mac_btn=ttk.Button(self.home_tab,text="Generate",command=self.randomMAC)
+        self.generate_mac_btn.place(x=300,y=86)
+
+        # change mac button
+        self.change_mac_btn=tk.Button(self.home_tab,text="Change Mac",command=self.macchanger,width=30)
+        self.change_mac_btn.place(x=60,y=150)
+
+        #about the developer
+        self.about_label=ttk.Label(self.about_tab,text="DISCLAIMER: This is *only* for testing purposes.\nDo not use this for illegal purposes.\n\nAbout the Developer:\n\nfollow me on Github : github.com/altaf7740\nfollow me on Linkedin : linkedin.com/in/altaf7740\n\n\n   THANK YOU :)")
+        self.about_label.grid(row=0,column=0)
+
+        root.mainloop()
+
+
+    def randomMAC(self):
+        mac = [00,00,00,random.randint(0x00, 0xff),random.randint(0x00, 0xff),random.randint(0x00, 0xff)]
+        mac_address = ':'.join(map(lambda x: "%02x" % x, mac))
+        (self.mac_entry).delete(0,tk.END)
+        self.mac_entry.insert(0,mac_address)
+
+
+
+    def macchanger(self):
+        '''this is a part of net-tools, this tool must be install on the pc
+        if it is not installed then this algorithm not work'''
+        if self.check_everything_correct():
+            subprocess.call(['ifconfig',self.interface.get(),'down'])
+            subprocess.call(['ifconfig',self.interface.get(),'hw','ether',self.mac_address.get()])
+            subprocess.call(['ifconfig',self.interface.get(),'up'])
+            self.get_current_mac()
+
+
+    #check all the requirment
+    def check_everything_correct(self):
+        '''it recieve the mac address and interface name as argument from
+        the user and return the values'''
+        if not self.mac_address.get():
+            m_box.showerror("error","Please Specify MAC Address")
+            return False
+        if len(self.mac_address.get())>17 or len(self.mac_address.get())<17 :
+            m_box.showerror("error","Invalid MAC Address !")
+            return False
+        if subprocess.check_output(["id","-u"]) != 0:
+            m_box.showerror("error","You Are Not Root user\nRun It as Root User")
+            return False
+        return True
+
+
+    def get_current_mac(self):
+        ifconfig_result=subprocess.check_output(["ifconfig",self.interface.get()])
+        mac_address_search_result=re.search(r"\w\w:\w\w:\w\w:\w\w:\w\w:\w\w",str(ifconfig_result))
+        if mac_address_search_result:
+            if self.mac_address.get == mac_address_search_result.group(0):
+                m_box.showinfo("success","MAC Address Successfully Changed")
+            else:
+                m_box.showerror("error","Unable To change MAC Address")
+        else:
+            m_box.showerror("error","MAC Address Cant Be Changed of selected interface")
+
+
+obj=mac_changer()
