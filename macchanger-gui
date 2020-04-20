@@ -90,7 +90,7 @@ class mac_changer:
         if len(self.mac_address.get())>17 or len(self.mac_address.get())<17 :
             m_box.showerror("error","Invalid MAC Address !")
             return False
-        if subprocess.check_output(["id","-u"]) != 0:
+        if int(subprocess.check_output(["id","-u"])) != 0:
             m_box.showerror("error","You Are Not Root user\nRun It as Root User")
             return False
         return True
@@ -100,12 +100,12 @@ class mac_changer:
         ifconfig_result=subprocess.check_output(["ifconfig",self.interface.get()])
         mac_address_search_result=re.search(r"\w\w:\w\w:\w\w:\w\w:\w\w:\w\w",str(ifconfig_result))
         if mac_address_search_result:
-            if self.mac_address.get == mac_address_search_result.group(0):
+            if self.mac_address.get() == mac_address_search_result.group(0):
                 m_box.showinfo("success","MAC Address Successfully Changed")
             else:
                 m_box.showerror("error","Unable To change MAC Address")
         else:
-            m_box.showerror("error","MAC Address Cant Be Changed of selected interface")
+            m_box.showerror("error",f"Interface: {self.interface.get()} has no MAC Address\nSo MAC Cddress Can't Be Change")
 
 
 obj=mac_changer()
