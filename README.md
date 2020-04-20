@@ -14,8 +14,10 @@ Q. how to use ?
 A. this tool require root privilleges to install on you system. 
     it also require some packages like net-tools python3 python3.8
     
-To install it on the system follow the steps :-
+To install it on the system follow the steps :
+-
 step1: clone the tool using the below command
+
         git clone https://github.com/altaf7740/macchanger-gui.git
         
 step 2: move into the drectory
